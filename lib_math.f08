@@ -1,5 +1,7 @@
 module lib_math
 
+    use lib_kinds, only: wp
+
     implicit none
 
     interface mean
@@ -14,12 +16,16 @@ module lib_math
         module procedure diff_1d, diff_2d_dim
     end interface
 
+    interface unique
+        module procedure unique_1d, unique_2d
+    end interface
+
 contains
 
     pure function linspace(a, b, n) result(y)
-        real, intent(in) :: a, b
+        real(wp), intent(in) :: a, b
         integer, intent(in) :: n
-        real :: y(max(n, 0))
+        real(wp) :: y(max(n, 0))
         integer :: i
 
         if (n < 1) then
@@ -39,18 +45,18 @@ contains
     end function
 
     pure function logspace(a, b, n) result(y)
-        real, intent(in) :: a, b
+        real(wp), intent(in) :: a, b
         integer, intent(in) :: n
-        real :: y(max(n, 0))
+        real(wp) :: y(max(n, 0))
 
         y = linspace(10.0**a, 10.0**b, n)
 
     end function
 
     pure function arrange(a, b, s) result(y)
-        real, intent(in) :: a, b, s
+        real(wp), intent(in) :: a, b, s
         integer :: sz, i
-        real :: y(floor((b - a) / s) + 1)
+        real(wp) :: y(floor((b - a) / s) + 1)
 
         sz = size(y)
         do i = 1, sz
@@ -60,8 +66,8 @@ contains
     end function
 
     pure function mean_1d(a) result(y)
-        real, intent(in) :: a(:)
-        real :: N, y
+        real(wp), intent(in) :: a(:)
+        real(wp) :: N, y
 
         N = real(size(a))
         y = sum(a) / max(1.0, N)
@@ -69,8 +75,8 @@ contains
     end function
 
     pure function mean_2d(a) result(y)
-        real, intent(in) :: a(:, :)
-        real :: N, y
+        real(wp), intent(in) :: a(:, :)
+        real(wp) :: N, y
 
         N = real(size(a))
         y = sum(a) / max(1.0, N)
@@ -78,9 +84,9 @@ contains
     end function
 
     pure function mean_2d_dim(a, dim) result(y)
-        real, intent(in) :: a(:, :)
+        real(wp), intent(in) :: a(:, :)
         integer, intent(in) :: dim
-        real :: N, y(size(a, 3 - dim))
+        real(wp) :: N, y(size(a, 3 - dim))
 
         N = real(size(a, dim))
         y = sum(a, dim) / max(1.0, N)
@@ -88,8 +94,8 @@ contains
     end function
 
     pure function std_1d(a) result(y)
-        real, intent(in) :: a(:)
-        real :: N, mu, y
+        real(wp), intent(in) :: a(:)
+        real(wp) :: N, mu, y
 
         mu = mean(a)
         N = real(size(a))
@@ -98,8 +104,8 @@ contains
     end function
 
     pure function std_2d(a) result(y)
-        real, intent(in) :: a(:, :)
-        real :: N, mu, y
+        real(wp), intent(in) :: a(:, :)
+        real(wp) :: N, mu, y
 
         mu = mean(a)
         N = real(size(a))
@@ -108,11 +114,11 @@ contains
     end function
 
     pure function std_2d_dim(a, dim) result(y)
-        real, intent(in) :: a(:, :)
+        real(wp), intent(in) :: a(:, :)
         integer, intent(in) :: dim
         integer :: i, sz
-        real :: N, mu(size(a, 3 - dim))
-        real :: y(size(a, 3 - dim))
+        real(wp) :: N, mu(size(a, 3 - dim))
+        real(wp) :: y(size(a, 3 - dim))
 
         mu = mean(a, dim)
         N = real(size(a, dim))
@@ -132,8 +138,8 @@ contains
     end function
 
     pure function diff_1d(a) result(y)
-        real, intent(in) :: a(:)
-        real :: y(size(a) - 1)
+        real(wp), intent(in) :: a(:)
+        real(wp) :: y(size(a) - 1)
         integer :: i, sz
 
         sz = size(y)
@@ -144,9 +150,9 @@ contains
     end function
 
     pure function diff_2d_dim(a, dim) result(y)
-        real, intent(in) :: a(:, :)
+        real(wp), intent(in) :: a(:, :)
         integer, intent(in) :: dim
-        real, allocatable :: y(:, :)
+        real(wp), allocatable :: y(:, :)
         integer :: i, sz
 
         if (dim == 1) then
@@ -167,9 +173,9 @@ contains
 
     pure function inv_2x2(A) result(B)
         ! Performs a direct calculation of the inverse of a 2×2 matrix.
-        complex, intent(in) :: A(2, 2)   !! Matrix
-        complex :: B(2, 2)   !! Inverse matrix
-        complex :: detinv
+        complex(wp), intent(in) :: A(2, 2)   !! Matrix
+        complex(wp) :: B(2, 2)   !! Inverse matrix
+        complex(wp) :: detinv
 
         ! Calculate the inverse determinant of the matrix
         detinv = 1 / (A(1, 1) * A(2, 2) - A(1, 2) * A(2, 1))
@@ -184,9 +190,9 @@ contains
 
     pure function inv_3x3(A) result(B)
         ! Performs a direct calculation of the inverse of a 3×3 matrix.
-        complex, intent(in) :: A(3, 3)   !! Matrix
-        complex :: B(3, 3)   !! Inverse matrix
-        complex :: detinv
+        complex(wp), intent(in) :: A(3, 3)   !! Matrix
+        complex(wp) :: B(3, 3)   !! Inverse matrix
+        complex(wp) :: detinv
 
         ! Calculate the inverse determinant of the matrix
         detinv = 1 / (A(1, 1) * A(2, 2) * A(3, 3) - A(1, 1) * A(2, 3) * A(3, 2) &
@@ -208,9 +214,9 @@ contains
 
     pure function inv_4x4(A) result(B)
         ! Performs a direct calculation of the inverse of a 4×4 matrix.
-        complex, intent(in) :: A(4, 4)   !! Matrix
-        complex :: B(4, 4)   !! Inverse matrix
-        complex :: detinv
+        complex(wp), intent(in) :: A(4, 4)   !! Matrix
+        complex(wp) :: B(4, 4)   !! Inverse matrix
+        complex(wp) :: detinv
 
         ! Calculate the inverse determinant of the matrix
         !&<
@@ -243,57 +249,119 @@ contains
 
     end function
 
+    pure function unique_1d(a) result(y)
+        real(wp), intent(in) :: a(:)
+        logical :: mask(size(a)), work(size(a))
+        integer :: i
+        real(wp), allocatable :: y(:)
+
+        mask = .false.
+
+        do i = 1, size(a)
+            work = a == a(i)
+            if (count(work) == 1) then
+                ! one value, flag it
+                mask(i) = .true.
+            else
+                ! multiple values, flag it only if it hasnt been seen before
+                if (.not. any(work .and. mask)) then
+                    mask(i) = .true.
+                end if
+            end if
+        end do
+
+        allocate (y(count(mask)))
+
+        y = pack(a, mask=mask)
+
+    end function
+
+    pure function unique_2d(a2) result(y)
+        real(wp), intent(in) :: a2(:, :)
+        real(wp) :: a(size(a2))
+        logical :: mask(size(a)), work(size(a))
+        integer :: i
+        real(wp), allocatable :: y(:)
+
+        a = pack(a2, .true.)
+
+        mask = .false.
+
+        do i = 1, size(a)
+            work = a == a(i)
+            if (count(work) == 1) then
+                ! one value, flag it
+                mask(i) = .true.
+            else
+                ! multiple values, flag it only if it hasnt been seen before
+                if (.not. any(work .and. mask)) then
+                    mask(i) = .true.
+                end if
+            end if
+        end do
+
+        allocate (y(count(mask)))
+
+        y = pack(a, mask=mask)
+
+    end function
+
 end module
 
 program main
-    use iso_fortran_env
     use lib_math
+    use lib_kinds
     implicit none
 
-    real :: empty(0)
+    real(wp) :: empty(0)
 
     print *, 'LINSPACE'
     print *, repeat('-', 20)
-    print *, linspace(0.0, 3.0, 6)
-    print *, linspace(0.0, 3.0, 1)
-    print *, linspace(0.0, 3.0, 0)
+    print *, linspace(0.0_wp, 3.0_wp, 6)
+    print *, linspace(0.0_wp, 3.0_wp, 1)
+    print *, linspace(0.0_wp, 3.0_wp, 0)
 
     print *, 'LOGSPACE'
     print *, repeat('-', 20)
-    print *, logspace(0.0, 3.0, 6)
-    print *, logspace(0.0, 3.0, 1)
-    print *, logspace(0.0, 3.0, 0)
+    print *, logspace(0.0_wp, 3.0_wp, 6)
+    print *, logspace(0.0_wp, 3.0_wp, 1)
+    print *, logspace(0.0_wp, 3.0_wp, 0)
 
     print *, 'ARRANGE'
     print *, repeat('-', 20)
-    print *, arrange(1.0, 10.0, 1.0)
-    print *, arrange(1.0, 10.0, 2.0)
-    print *, arrange(0.0, 10.0, 2.0)
+    print *, arrange(1.0_wp, 10.0_wp, 1.0_wp)
+    print *, arrange(1.0_wp, 10.0_wp, 2.0_wp)
+    print *, arrange(0.0_wp, 10.0_wp, 2.0_wp)
 
     print *, 'MEAN'
     print *, repeat('-', 20)
-    print *, mean((/1.0, 2.0, 3.0, 4.0/))
-    print *, mean((/1.0/))
+    print *, mean((/1.0_wp, 2.0_wp, 3.0_wp, 4.0_wp/))
+    print *, mean((/1.0_wp/))
     print *, mean(empty)
-    print *, mean(reshape((/1.0, 2.0, 3.0, 4.0, 5.0, 6.0/), (/3, 2/)))
-    print *, mean(reshape((/1.0, 2.0, 3.0, 4.0, 5.0, 6.0/), (/3, 2/)), 1)
-    print *, mean(reshape((/1.0, 2.0, 3.0, 4.0, 5.0, 6.0/), (/3, 2/)), 2)
+    print *, mean(reshape((/1.0_wp, 2.0_wp, 3.0_wp, 4.0_wp, 5.0_wp, 6.0_wp/), (/3, 2/)))
+    print *, mean(reshape((/1.0_wp, 2.0_wp, 3.0_wp, 4.0_wp, 5.0_wp, 6.0_wp/), (/3, 2/)), 1)
+    print *, mean(reshape((/1.0_wp, 2.0_wp, 3.0_wp, 4.0_wp, 5.0_wp, 6.0_wp/), (/3, 2/)), 2)
 
     print *, 'STD'
     print *, repeat('-', 20)
-    print *, std((/1.0, 2.0, 3.0/))
-    print *, std((/1.0, 1.0, 1.0/))
-    print *, std((/1.0/))
+    print *, std((/1.0_wp, 2.0_wp, 3.0_wp/))
+    print *, std((/1.0_wp, 1.0_wp, 1.0_wp/))
+    print *, std((/1.0_wp/))
     print *, std(empty)
-    print *, std(reshape((/1.0, 2.0, 3.0, 4.0, 5.0, 6.0/), (/3, 2/)))
-    print *, std(reshape((/1.0, 2.0, 3.0, 4.0, 5.0, 6.0/), (/3, 2/)), 1)
-    print *, std(reshape((/1.0, 2.0, 3.0, 4.0, 5.0, 6.0/), (/3, 2/)), 2)
+    print *, std(reshape((/1.0_wp, 2.0_wp, 3.0_wp, 4.0_wp, 5.0_wp, 6.0_wp/), (/3, 2/)))
+    print *, std(reshape((/1.0_wp, 2.0_wp, 3.0_wp, 4.0_wp, 5.0_wp, 6.0_wp/), (/3, 2/)), 1)
+    print *, std(reshape((/1.0_wp, 2.0_wp, 3.0_wp, 4.0_wp, 5.0_wp, 6.0_wp/), (/3, 2/)), 2)
 
     print *, 'DIFF'
     print *, repeat('-', 20)
-    print *, diff((/1.0/))
-    print *, diff((/1.0, 2.0, 3.0, 5.0, 8.0, 12.0/))
-    print *, diff(reshape((/1.0, 2.0, 3.0, 5.0, 8.0, 12.0/), (/3, 2/)), 1)
-    print *, diff(reshape((/1.0, 2.0, 3.0, 5.0, 8.0, 12.0/), (/3, 2/)), 2)
+    print *, diff((/1.0_wp/))
+    print *, diff((/1.0_wp, 2.0_wp, 3.0_wp, 5.0_wp, 8.0_wp, 12.0_wp/))
+    print *, diff(reshape((/1.0_wp, 2.0_wp, 3.0_wp, 5.0_wp, 8.0_wp, 12.0_wp/), (/3, 2/)), 1)
+    print *, diff(reshape((/1.0_wp, 2.0_wp, 3.0_wp, 5.0_wp, 8.0_wp, 12.0_wp/), (/3, 2/)), 2)
+
+    print *, 'UNIQUE'
+    print *, repeat('-', 20)
+    print *, unique((/2.0_wp, 2.0_wp, 1.0_wp, 2.0_wp, -1.0_wp, 22.0_wp, 1.0_wp, 3.0_wp/))
+    print *, unique(reshape((/2.0_wp, 2.0_wp, 1.0_wp, 2.0_wp, -1.0_wp, 22.0_wp, 1.0_wp, 3.0_wp/), (/4, 2/)))
 
 end program
