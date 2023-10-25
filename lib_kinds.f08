@@ -6,6 +6,8 @@ module lib_kinds
     use iso_c_binding, only: &
         c_bool, c_char, c_double, c_float
 
+    implicit none
+
     ! Possible working kinds
     integer, parameter :: sp = selected_real_kind(6)
     integer, parameter :: dp = selected_real_kind(15)
@@ -13,7 +15,7 @@ module lib_kinds
     integer, parameter :: qp = selected_real_kind(33)
     integer, parameter :: lk = kind(.true.)
 
-    ! Set WORKING precision used as default real kinds
+    ! Set WORKING real kind
     integer, parameter :: wp = dp
 
 end module

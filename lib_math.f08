@@ -1,264 +1,193 @@
 module lib_math
 
-    use lib_kinds, only: wp
+    use lib_kinds, only: sp, dp
 
     implicit none
 
-    interface diff
-        module procedure diff_1d, diff_2d_dim
+    private
+    public :: trapz
+
+    interface trapz
+        module procedure trapz_xy_sp
+        module procedure trapz_xy_dp
+        module procedure trapz_y_sp
+        module procedure trapz_y_dp
+        module procedure trapz_func_sp
+        module procedure trapz_func_dp
     end interface
 
-    interface unique
-        module procedure unique_1d, unique_2d
+    interface trapezium
+        module procedure trapezium_sp
+        module procedure trapezium_dp
     end interface
 
 contains
 
-    pure function linspace(a, b, n) result(y)
-        real(wp), intent(in) :: a, b
-        integer, intent(in) :: n
-        real(wp) :: y(max(n, 0))
+    pure function trapz_xy_sp(x, y) result(s)
+        real(sp), intent(in) :: x(:), y(:)
         integer :: i
+        real(sp) :: s
 
-        if (n < 1) then
-            return ! empty y
-        end if
+        s = 0.0_sp
 
-        if (n == 1) then
-            y(1) = b
-            return
-        end if
+        do i = 1, size(y) - 1
+            s = s + trapezium(x(i), x(i + 1), y(i), y(i + 1))
+        end do
 
-        ! create the linspace
+    end function
+
+    pure function trapz_xy_dp(x, y) result(s)
+        real(dp), intent(in) :: x(:), y(:)
+        integer :: i
+        real(dp) :: s
+
+        s = 0.0_dp
+
+        do i = 1, size(y) - 1
+            s = s + trapezium(x(i), x(i + 1), y(i), y(i + 1))
+        end do
+
+    end function
+
+    pure function trapz_y_sp(y) result(s)
+        real(sp), intent(in) :: y(:)
+        integer :: i
+        real(sp) :: s
+
+        s = 0.0_sp
+
+        do i = 1, size(y) - 1
+            s = s + trapezium(0.0_sp, 1.0_sp, y(i), y(i + 1))
+        end do
+
+    end function
+
+    pure function trapz_y_dp(y) result(s)
+        real(dp), intent(in) :: y(:)
+        integer :: i
+        real(dp) :: s
+
+        s = 0.0_dp
+
+        do i = 1, size(y) - 1
+            s = s + trapezium(0.0_dp, 1.0_dp, y(i), y(i + 1))
+        end do
+
+    end function
+
+    pure function trapz_func_sp(f, a, b, n) result(s)
+        interface
+            pure function f(x)
+                use lib_kinds, only: sp
+                real(sp), intent(in) :: x
+                real(sp) :: f
+            end function
+        end interface
+        real(sp), intent(in) :: a, b
+        integer, intent(in) :: n
+        integer :: i
+        real(sp) :: s, dx, x1, x2, y1, y2
+
+        s = 0.0_sp
+        dx = (b - a) / real(n, kind=sp)
+
         do i = 1, n
-            y(i) = a + (i - 1) * (b - a) / (n - 1)
+            x1 = a + real((i - 1), kind=sp) * dx
+            x2 = x1 + dx
+            y1 = f(x1)
+            y2 = f(x2)
+            s = s + trapezium(x1, x2, y1, y2)
         end do
 
     end function
 
-    pure function logspace(a, b, n) result(y)
-        real(wp), intent(in) :: a, b
+    pure function trapz_func_dp(f, a, b, n) result(s)
+        interface
+            pure function f(x)
+                use lib_kinds, only: dp
+                real(dp), intent(in) :: x
+                real(dp) :: f
+            end function
+        end interface
+        real(dp), intent(in) :: a, b
         integer, intent(in) :: n
-        real(wp) :: y(max(n, 0))
-
-        y = linspace(10.0**a, 10.0**b, n)
-
-    end function
-
-    pure function arrange(a, b, s) result(y)
-        real(wp), intent(in) :: a, b, s
-        integer :: sz, i
-        real(wp) :: y(floor((b - a) / s) + 1)
-
-        sz = size(y)
-        do i = 1, sz
-            y(i) = a + s * real(i - 1)
-        end do
-
-    end function
-
-    pure function diff_1d(a) result(y)
-        real(wp), intent(in) :: a(:)
-        real(wp) :: y(size(a) - 1)
-        integer :: i, sz
-
-        sz = size(y)
-        do i = 1, sz
-            y(i) = a(i + 1) - a(i)
-        end do
-
-    end function
-
-    pure function diff_2d_dim(a, dim) result(y)
-        real(wp), intent(in) :: a(:, :)
-        integer, intent(in) :: dim
-        real(wp), allocatable :: y(:, :)
-        integer :: i, sz
-
-        if (dim == 1) then
-            allocate (y(size(a, 1) - 1, size(a, 2)))
-            sz = size(y, 1)
-            do i = 1, sz
-                y(i, :) = a(i + 1, :) - a(i, :)
-            end do
-        else if (dim == 2) then
-            allocate (y(size(a, 1), size(a, 2) - 1))
-            sz = size(y, 2)
-            do i = 1, sz
-                y(:, i) = a(:, i + 1) - a(:, i)
-            end do
-        end if
-
-    end function
-
-    pure function inv_2x2(A) result(B)
-        ! Performs a direct calculation of the inverse of a 2×2 matrix.
-        complex(wp), intent(in) :: A(2, 2)   !! Matrix
-        complex(wp) :: B(2, 2)   !! Inverse matrix
-        complex(wp) :: detinv
-
-        ! Calculate the inverse determinant of the matrix
-        detinv = 1 / (A(1, 1) * A(2, 2) - A(1, 2) * A(2, 1))
-
-        ! Calculate the inverse of the matrix
-        B(1, 1) = +detinv * A(2, 2)
-        B(2, 1) = -detinv * A(2, 1)
-        B(1, 2) = -detinv * A(1, 2)
-        B(2, 2) = +detinv * A(1, 1)
-
-    end function
-
-    pure function inv_3x3(A) result(B)
-        ! Performs a direct calculation of the inverse of a 3×3 matrix.
-        complex(wp), intent(in) :: A(3, 3)   !! Matrix
-        complex(wp) :: B(3, 3)   !! Inverse matrix
-        complex(wp) :: detinv
-
-        ! Calculate the inverse determinant of the matrix
-        detinv = 1 / (A(1, 1) * A(2, 2) * A(3, 3) - A(1, 1) * A(2, 3) * A(3, 2) &
-                      - A(1, 2) * A(2, 1) * A(3, 3) + A(1, 2) * A(2, 3) * A(3, 1) &
-                      + A(1, 3) * A(2, 1) * A(3, 2) - A(1, 3) * A(2, 2) * A(3, 1))
-
-        ! Calculate the inverse of the matrix
-        B(1, 1) = +detinv * (A(2, 2) * A(3, 3) - A(2, 3) * A(3, 2))
-        B(2, 1) = -detinv * (A(2, 1) * A(3, 3) - A(2, 3) * A(3, 1))
-        B(3, 1) = +detinv * (A(2, 1) * A(3, 2) - A(2, 2) * A(3, 1))
-        B(1, 2) = -detinv * (A(1, 2) * A(3, 3) - A(1, 3) * A(3, 2))
-        B(2, 2) = +detinv * (A(1, 1) * A(3, 3) - A(1, 3) * A(3, 1))
-        B(3, 2) = -detinv * (A(1, 1) * A(3, 2) - A(1, 2) * A(3, 1))
-        B(1, 3) = +detinv * (A(1, 2) * A(2, 3) - A(1, 3) * A(2, 2))
-        B(2, 3) = -detinv * (A(1, 1) * A(2, 3) - A(1, 3) * A(2, 1))
-        B(3, 3) = +detinv * (A(1, 1) * A(2, 2) - A(1, 2) * A(2, 1))
-
-    end function
-
-    pure function inv_4x4(A) result(B)
-        ! Performs a direct calculation of the inverse of a 4×4 matrix.
-        complex(wp), intent(in) :: A(4, 4)   !! Matrix
-        complex(wp) :: B(4, 4)   !! Inverse matrix
-        complex(wp) :: detinv
-
-        ! Calculate the inverse determinant of the matrix
-        !&<
-        detinv = &
-        1/(A(1,1)*(A(2,2)*(A(3,3)*A(4,4)-A(3,4)*A(4,3))+A(2,3)*(A(3,4)*A(4,2)-A(3,2)*A(4,4))+A(2,4)*(A(3,2)*A(4,3)-A(3,3)*A(4,2))) &
-        -A(1,2)*(A(2,1)*(A(3,3)*A(4,4)-A(3,4)*A(4,3))+A(2,3)*(A(3,4)*A(4,1)-A(3,1)*A(4,4))+A(2,4)*(A(3,1)*A(4,3)-A(3,3)*A(4,1))) &
-        +A(1,3)*(A(2,1)*(A(3,2)*A(4,4)-A(3,4)*A(4,2))+A(2,2)*(A(3,4)*A(4,1)-A(3,1)*A(4,4))+A(2,4)*(A(3,1)*A(4,2)-A(3,2)*A(4,1))) &
-        -A(1,4)*(A(2,1)*(A(3,2)*A(4,3)-A(3,3)*A(4,2))+A(2,2)*(A(3,3)*A(4,1)-A(3,1)*A(4,3))+A(2,3)*(A(3,1)*A(4,2)-A(3,2)*A(4,1))))
-        !&>
-
-        !Calculatetheinverseofthematrix
-        !&<
-      B(1,1)=detinv*(A(2,2)*(A(3,3)*A(4,4)-A(3,4)*A(4,3))+A(2,3)*(A(3,4)*A(4,2)-A(3,2)*A(4,4))+A(2,4)*(A(3,2)*A(4,3)-A(3,3)*A(4,2)))
-      B(2,1)=detinv*(A(2,1)*(A(3,4)*A(4,3)-A(3,3)*A(4,4))+A(2,3)*(A(3,1)*A(4,4)-A(3,4)*A(4,1))+A(2,4)*(A(3,3)*A(4,1)-A(3,1)*A(4,3)))
-      B(3,1)=detinv*(A(2,1)*(A(3,2)*A(4,4)-A(3,4)*A(4,2))+A(2,2)*(A(3,4)*A(4,1)-A(3,1)*A(4,4))+A(2,4)*(A(3,1)*A(4,2)-A(3,2)*A(4,1)))
-      B(4,1)=detinv*(A(2,1)*(A(3,3)*A(4,2)-A(3,2)*A(4,3))+A(2,2)*(A(3,1)*A(4,3)-A(3,3)*A(4,1))+A(2,3)*(A(3,2)*A(4,1)-A(3,1)*A(4,2)))
-      B(1,2)=detinv*(A(1,2)*(A(3,4)*A(4,3)-A(3,3)*A(4,4))+A(1,3)*(A(3,2)*A(4,4)-A(3,4)*A(4,2))+A(1,4)*(A(3,3)*A(4,2)-A(3,2)*A(4,3)))
-      B(2,2)=detinv*(A(1,1)*(A(3,3)*A(4,4)-A(3,4)*A(4,3))+A(1,3)*(A(3,4)*A(4,1)-A(3,1)*A(4,4))+A(1,4)*(A(3,1)*A(4,3)-A(3,3)*A(4,1)))
-      B(3,2)=detinv*(A(1,1)*(A(3,4)*A(4,2)-A(3,2)*A(4,4))+A(1,2)*(A(3,1)*A(4,4)-A(3,4)*A(4,1))+A(1,4)*(A(3,2)*A(4,1)-A(3,1)*A(4,2)))
-      B(4,2)=detinv*(A(1,1)*(A(3,2)*A(4,3)-A(3,3)*A(4,2))+A(1,2)*(A(3,3)*A(4,1)-A(3,1)*A(4,3))+A(1,3)*(A(3,1)*A(4,2)-A(3,2)*A(4,1)))
-      B(1,3)=detinv*(A(1,2)*(A(2,3)*A(4,4)-A(2,4)*A(4,3))+A(1,3)*(A(2,4)*A(4,2)-A(2,2)*A(4,4))+A(1,4)*(A(2,2)*A(4,3)-A(2,3)*A(4,2)))
-      B(2,3)=detinv*(A(1,1)*(A(2,4)*A(4,3)-A(2,3)*A(4,4))+A(1,3)*(A(2,1)*A(4,4)-A(2,4)*A(4,1))+A(1,4)*(A(2,3)*A(4,1)-A(2,1)*A(4,3)))
-      B(3,3)=detinv*(A(1,1)*(A(2,2)*A(4,4)-A(2,4)*A(4,2))+A(1,2)*(A(2,4)*A(4,1)-A(2,1)*A(4,4))+A(1,4)*(A(2,1)*A(4,2)-A(2,2)*A(4,1)))
-      B(4,3)=detinv*(A(1,1)*(A(2,3)*A(4,2)-A(2,2)*A(4,3))+A(1,2)*(A(2,1)*A(4,3)-A(2,3)*A(4,1))+A(1,3)*(A(2,2)*A(4,1)-A(2,1)*A(4,2)))
-      B(1,4)=detinv*(A(1,2)*(A(2,4)*A(3,3)-A(2,3)*A(3,4))+A(1,3)*(A(2,2)*A(3,4)-A(2,4)*A(3,2))+A(1,4)*(A(2,3)*A(3,2)-A(2,2)*A(3,3)))
-      B(2,4)=detinv*(A(1,1)*(A(2,3)*A(3,4)-A(2,4)*A(3,3))+A(1,3)*(A(2,4)*A(3,1)-A(2,1)*A(3,4))+A(1,4)*(A(2,1)*A(3,3)-A(2,3)*A(3,1)))
-      B(3,4)=detinv*(A(1,1)*(A(2,4)*A(3,2)-A(2,2)*A(3,4))+A(1,2)*(A(2,1)*A(3,4)-A(2,4)*A(3,1))+A(1,4)*(A(2,2)*A(3,1)-A(2,1)*A(3,2)))
-      B(4,4)=detinv*(A(1,1)*(A(2,2)*A(3,3)-A(2,3)*A(3,2))+A(1,2)*(A(2,3)*A(3,1)-A(2,1)*A(3,3))+A(1,3)*(A(2,1)*A(3,2)-A(2,2)*A(3,1)))
-        !&>
-
-    end function
-
-    pure function unique_1d(a) result(y)
-        real(wp), intent(in) :: a(:)
-        logical :: mask(size(a)), work(size(a))
         integer :: i
-        real(wp), allocatable :: y(:)
+        real(dp) :: s, dx, x1, x2, y1, y2
 
-        mask = .false.
+        s = 0.0_dp
+        dx = (b - a) / real(n, kind=dp)
 
-        do i = 1, size(a)
-            work = a == a(i)
-            if (count(work) == 1) then
-                ! one value, flag it
-                mask(i) = .true.
-            else
-                ! multiple values, flag it only if it hasnt been seen before
-                if (.not. any(work .and. mask)) then
-                    mask(i) = .true.
-                end if
-            end if
+        do i = 1, n
+            x1 = a + real((i - 1), kind=dp) * dx
+            x2 = x1 + dx
+            y1 = f(x1)
+            y2 = f(x2)
+            s = s + trapezium(x1, x2, y1, y2)
         end do
-
-        allocate (y(count(mask)))
-        y = pack(a, mask=mask)
 
     end function
 
-    pure function unique_2d(a2) result(y)
-        real(wp), intent(in) :: a2(:, :)
-        real(wp) :: a(size(a2))
-        logical :: mask(size(a)), work(size(a))
-        integer :: i
-        real(wp), allocatable :: y(:)
+    pure function trapezium_sp(x1, x2, y1, y2) result(s)
+        real(sp), intent(in) :: x1, x2, y1, y2
+        real(sp) :: s
+        s = 0.5_sp * (y1 + y2) * (x2 - x1)
+    end function
 
-        a = pack(a2, .true.)
-
-        mask = .false.
-
-        do i = 1, size(a)
-            work = a == a(i)
-            if (count(work) == 1) then
-                ! one value, flag it
-                mask(i) = .true.
-            else
-                ! multiple values, flag it only if it hasnt been flagged before
-                if (.not. any(work .and. mask)) then
-                    mask(i) = .true.
-                end if
-            end if
-        end do
-
-        allocate (y(count(mask)))
-        y = pack(a, mask=mask)
-
+    pure function trapezium_dp(x1, x2, y1, y2) result(s)
+        real(dp), intent(in) :: x1, x2, y1, y2
+        real(dp) :: s
+        s = 0.5_dp * (y1 + y2) * (x2 - x1)
     end function
 
 end module
 
-program main
+program main_lib_math
     use lib_math
-    use lib_kinds, only: wp
+    use lib_array, only: linspace
+    use lib_kinds, only: sp, dp
     implicit none
 
-    print *, 'LINSPACE'
-    print *, repeat('-', 20)
-    print *, linspace(0.0_wp, 3.0_wp, 6)
-    print *, linspace(0.0_wp, 3.0_wp, 1)
-    print *, linspace(0.0_wp, 3.0_wp, 0)
+    real(sp), allocatable :: x_sp(:), y_sp(:)
+    real(dp), allocatable :: x_dp(:), y_dp(:)
+    real(dp) :: t1, t2
+    integer :: i, n
 
-    print *, 'LOGSPACE'
-    print *, repeat('-', 20)
-    print *, logspace(0.0_wp, 3.0_wp, 6)
-    print *, logspace(0.0_wp, 3.0_wp, 1)
-    print *, logspace(0.0_wp, 3.0_wp, 0)
+    call cpu_time(t1)
+    do n = 1, 10000
 
-    print *, 'ARRANGE'
-    print *, repeat('-', 20)
-    print *, arrange(1.0_wp, 10.0_wp, 1.0_wp)
-    print *, arrange(1.0_wp, 10.0_wp, 2.0_wp)
-    print *, arrange(0.0_wp, 10.0_wp, 2.0_wp)
+        allocate (x_sp(n), x_dp(n), y_sp(n), y_dp(n))
 
-    print *, 'DIFF'
-    print *, repeat('-', 20)
-    print *, diff((/1.0_wp/))
-    print *, diff((/1.0_wp, 2.0_wp, 3.0_wp, 5.0_wp, 8.0_wp, 12.0_wp/))
-    print *, diff(reshape((/1.0_wp, 2.0_wp, 3.0_wp, 5.0_wp, 8.0_wp, 12.0_wp/), (/3, 2/)), 1)
-    print *, diff(reshape((/1.0_wp, 2.0_wp, 3.0_wp, 5.0_wp, 8.0_wp, 12.0_wp/), (/3, 2/)), 2)
+        x_sp = linspace(0.0_sp, 1.0_sp, n)
+        x_dp = linspace(0.0_dp, 1.0_dp, n)
 
-    print *, 'UNIQUE'
-    print *, repeat('-', 20)
-    print *, unique((/2.0_wp, 2.0_wp, 1.0_wp, 2.0_wp, -1.0_wp, 22.0_wp, 1.0_wp, 3.0_wp/))
-    print *, unique(reshape((/2.0_wp, 2.0_wp, 1.0_wp, 2.0_wp, -1.0_wp, 22.0_wp, 1.0_wp, 3.0_wp/), (/4, 2/)))
+        do i = 1, n
+            y_sp(i) = f_sp(x_sp(i))
+            y_dp(i) = f_dp(x_dp(i))
+        end do
+
+        ! print *, &
+        !     trapz(x_sp, y_sp), &
+        !     trapz(x_dp, y_dp), &
+        !     trapz(f_sp, -0.0_sp, 1.0_sp, n - 1), &
+        !     trapz(f_dp, -0.0_dp, 1.0_dp, n - 1)
+
+        deallocate (x_sp, x_dp, y_sp, y_dp)
+    end do
+    call cpu_time(t2)
+    ! print *, 'Time: ', (t2 - t1), ' sec'
+
+contains
+    pure function f_sp(x)
+        real(sp), intent(in) :: x
+        real(sp) :: f_sp
+        f_sp = sin(x)
+    end function
+
+    pure function f_dp(x)
+        real(dp), intent(in) :: x
+        real(dp) :: f_dp
+        f_dp = sin(x)
+    end function
 
 end program
+
