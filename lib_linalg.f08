@@ -8,6 +8,7 @@ module lib_linalg
     public :: eye, diag
     public :: cross
     public :: inv_2x2, inv_3x3, inv_4x4
+    public :: chol
 
     interface diag
         module procedure diag_i
@@ -33,6 +34,10 @@ module lib_linalg
     interface inv_4x4
         module procedure inv_4x4_sp
         module procedure inv_4x4_dp
+    end interface
+
+    interface chol
+        module procedure chol_dp
     end interface
 
 contains
@@ -255,6 +260,54 @@ contains
       B(3,4)=detinv*(A(1,1)*(A(2,4)*A(3,2)-A(2,2)*A(3,4))+A(1,2)*(A(2,1)*A(3,4)-A(2,4)*A(3,1))+A(1,4)*(A(2,2)*A(3,1)-A(2,1)*A(3,2)))
       B(4,4)=detinv*(A(1,1)*(A(2,2)*A(3,3)-A(2,3)*A(3,2))+A(1,2)*(A(2,3)*A(3,1)-A(2,1)*A(3,3))+A(1,3)*(A(2,1)*A(3,2)-A(2,2)*A(3,1)))
 
+    end function
+
+    pure function chol_sp(A) result(L)
+        real(sp), intent(in) :: A(:, :)
+        real(sp) :: L(size(A, 1), size(A, 1))
+        real(sp) :: sum
+        integer :: i, j, k, n
+
+        n = size(A, 1)
+        L = 0.0_sp
+
+        do i = 1, n
+            do j = 1, i
+                sum = 0.0_sp
+                do k = 1, j - 1
+                    sum = sum + L(i, k) * L(j, k)
+                end do
+                if (i == j) then
+                    L(i, j) = sqrt(A(i, i) - sum)
+                else
+                    L(i, j) = 1.0_sp / L(j, j) * (A(i, j) - sum)
+                end if
+            end do
+        end do
+    end function
+
+    pure function chol_dp(A) result(L)
+        real(dp), intent(in) :: A(:, :)
+        real(dp) :: L(size(A, 1), size(A, 1))
+        real(dp) :: sum
+        integer :: i, j, k, n
+
+        n = size(A, 1)
+        L = 0.0_dp
+
+        do i = 1, n
+            do j = 1, i
+                sum = 0.0_dp
+                do k = 1, j - 1
+                    sum = sum + L(i, k) * L(j, k)
+                end do
+                if (i == j) then
+                    L(i, j) = sqrt(A(i, i) - sum)
+                else
+                    L(i, j) = 1.0_dp / L(j, j) * (A(i, j) - sum)
+                end if
+            end do
+        end do
     end function
 
 end module
