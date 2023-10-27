@@ -8,7 +8,7 @@ module lib_linalg
     public :: eye, diag
     public :: cross
     public :: inv_2x2, inv_3x3, inv_4x4
-    public :: chol
+    public :: chol, forward_solve, backward_solve
 
     interface diag
         module procedure diag_i
@@ -37,7 +37,18 @@ module lib_linalg
     end interface
 
     interface chol
+        module procedure chol_sp
         module procedure chol_dp
+    end interface
+
+    interface forward_solve
+        module procedure forward_solve_sp
+        module procedure forward_solve_dp
+    end interface
+
+    interface backward_solve
+        module procedure backward_solve_sp
+        module procedure backward_solve_dp
     end interface
 
 contains
@@ -264,23 +275,19 @@ contains
 
     pure function chol_sp(A) result(L)
         real(sp), intent(in) :: A(:, :)
+        real(sp) :: s
+        integer :: i, j
         real(sp) :: L(size(A, 1), size(A, 1))
-        real(sp) :: sum
-        integer :: i, j, k, n
 
-        n = size(A, 1)
         L = 0.0_sp
 
-        do i = 1, n
+        do i = 1, size(A, 1)
             do j = 1, i
-                sum = 0.0_sp
-                do k = 1, j - 1
-                    sum = sum + L(i, k) * L(j, k)
-                end do
+                s = sum(L(i, 1:j-1) * L(j, 1:j-1))
                 if (i == j) then
-                    L(i, j) = sqrt(A(i, i) - sum)
+                    L(i, j) = sqrt(A(i, i) - s)
                 else
-                    L(i, j) = 1.0_sp / L(j, j) * (A(i, j) - sum)
+                    L(i, j) = 1.0_sp / L(j, j) * (A(i, j) - s)
                 end if
             end do
         end do
@@ -288,26 +295,74 @@ contains
 
     pure function chol_dp(A) result(L)
         real(dp), intent(in) :: A(:, :)
+        real(dp) :: s
+        integer :: i, j
         real(dp) :: L(size(A, 1), size(A, 1))
-        real(dp) :: sum
-        integer :: i, j, k, n
 
-        n = size(A, 1)
         L = 0.0_dp
 
-        do i = 1, n
+        do i = 1, size(A, 1)
             do j = 1, i
-                sum = 0.0_dp
-                do k = 1, j - 1
-                    sum = sum + L(i, k) * L(j, k)
-                end do
+                s = sum(L(i, 1:j-1) * L(j, 1:j-1))
                 if (i == j) then
-                    L(i, j) = sqrt(A(i, i) - sum)
+                    L(i, j) = sqrt(A(i, i) - s)
                 else
-                    L(i, j) = 1.0_dp / L(j, j) * (A(i, j) - sum)
+                    L(i, j) = 1.0_dp / L(j, j) * (A(i, j) - s)
                 end if
             end do
         end do
+    end function
+
+    pure function forward_solve_sp(L, b) result(x)
+        real(sp), intent(in) :: L(:, :), b(:)
+        integer :: i
+        real(sp) :: s
+        real(sp) :: x(size(b))
+
+        do i = 1, size(L, 1)
+            s = sum(L(i, 1:i - 1) * x(1:i - 1))
+            x(i) = (b(i) - s) / L(i, i)
+        end do
+
+    end function
+
+    pure function forward_solve_dp(L, b) result(x)
+        real(dp), intent(in) :: L(:, :), b(:)
+        integer :: i
+        real(dp) :: s
+        real(dp) :: x(size(b))
+
+        do i = 1, size(L, 1)
+            s = sum(L(i, 1:i - 1) * x(1:i - 1))
+            x(i) = (b(i) - s) / L(i, i)
+        end do
+
+    end function
+
+    pure function backward_solve_sp(U, b) result(x)
+        real(sp), intent(in) :: U(:, :), b(:)
+        integer :: i
+        real(sp) :: s
+        real(sp) :: x(size(b))
+
+        do i = size(U, 1), 1, -1
+            s = sum(U(i, (i + 1):) * x((i + 1):))
+            x(i) = (b(i) - s) / U(i, i)
+        end do
+
+    end function
+
+    pure function backward_solve_dp(U, b) result(x)
+        real(dp), intent(in) :: U(:, :), b(:)
+        integer :: i
+        real(dp) :: s
+        real(dp) :: x(size(b))
+
+        do i = size(U, 1), 1, -1
+            s = sum(U(i, (i + 1):) * x((i + 1):))
+            x(i) = (b(i) - s) / U(i, i)
+        end do
+
     end function
 
 end module
