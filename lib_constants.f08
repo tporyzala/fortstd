@@ -16,8 +16,8 @@ module lib_constants
     complex(sp), parameter :: i_sp = (0.0_sp, 1.0_sp)
     complex(dp), parameter :: i_dp = (0.0_dp, 1.0_dp)
 
-    real(sp), parameter :: eps_sp = tiny(1.0_sp)
-    real(dp), parameter :: eps_dp = tiny(1.0_dp)
+    real(sp), parameter :: eps_sp = epsilon(1.0_sp)
+    real(dp), parameter :: eps_dp = epsilon(1.0_dp)
 
 end module
 
