@@ -175,53 +175,53 @@ contains
 
 end module
 
-program main_lib_math
-    use lib_math
-    use lib_array, only: linspace
-    use lib_kinds, only: sp, dp
-    implicit none
+! program main_lib_math
+!     use lib_math
+!     use lib_array, only: linspace
+!     use lib_kinds, only: sp, dp
+!     implicit none
 
-    real(sp), allocatable :: x_sp(:), y_sp(:)
-    real(dp), allocatable :: x_dp(:), y_dp(:)
-    real(dp) :: t1, t2
-    integer :: i, n
+!     real(sp), allocatable :: x_sp(:), y_sp(:)
+!     real(dp), allocatable :: x_dp(:), y_dp(:)
+!     real(dp) :: t1, t2
+!     integer :: i, n
 
-    call cpu_time(t1)
-    do n = 1, 10000
+!     call cpu_time(t1)
+!     do n = 1, 10000
 
-        allocate (x_sp(n), x_dp(n), y_sp(n), y_dp(n))
+!         allocate (x_sp(n), x_dp(n), y_sp(n), y_dp(n))
 
-        x_sp = linspace(0.0_sp, 1.0_sp, n)
-        x_dp = linspace(0.0_dp, 1.0_dp, n)
+!         x_sp = linspace(0.0_sp, 1.0_sp, n)
+!         x_dp = linspace(0.0_dp, 1.0_dp, n)
 
-        do i = 1, n
-            y_sp(i) = f_sp(x_sp(i))
-            y_dp(i) = f_dp(x_dp(i))
-        end do
+!         do i = 1, n
+!             y_sp(i) = f_sp(x_sp(i))
+!             y_dp(i) = f_dp(x_dp(i))
+!         end do
 
-        ! print *, &
-        !     trapz(x_sp, y_sp), &
-        !     trapz(x_dp, y_dp), &
-        !     trapz(f_sp, -0.0_sp, 1.0_sp, n - 1), &
-        !     trapz(f_dp, -0.0_dp, 1.0_dp, n - 1)
+!         ! print *, &
+!         !     trapz(x_sp, y_sp), &
+!         !     trapz(x_dp, y_dp), &
+!         !     trapz(f_sp, -0.0_sp, 1.0_sp, n - 1), &
+!         !     trapz(f_dp, -0.0_dp, 1.0_dp, n - 1)
 
-        deallocate (x_sp, x_dp, y_sp, y_dp)
-    end do
-    call cpu_time(t2)
-    ! print *, 'Time: ', (t2 - t1), ' sec'
+!         deallocate (x_sp, x_dp, y_sp, y_dp)
+!     end do
+!     call cpu_time(t2)
+!     ! print *, 'Time: ', (t2 - t1), ' sec'
 
-contains
-    pure function f_sp(x)
-        real(sp), intent(in) :: x
-        real(sp) :: f_sp
-        f_sp = sin(x)
-    end function
+! contains
+!     pure function f_sp(x)
+!         real(sp), intent(in) :: x
+!         real(sp) :: f_sp
+!         f_sp = sin(x)
+!     end function
 
-    pure function f_dp(x)
-        real(dp), intent(in) :: x
-        real(dp) :: f_dp
-        f_dp = sin(x)
-    end function
+!     pure function f_dp(x)
+!         real(dp), intent(in) :: x
+!         real(dp) :: f_dp
+!         f_dp = sin(x)
+!     end function
 
-end program
+! end program
 

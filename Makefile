@@ -9,8 +9,8 @@ lib: \
 	lib_kinds.mod\
 	lib_constants.mod\
 	lib_array.mod\
-	lib_linalg.mod\
 	lib_math.mod\
+	lib_linalg.mod\
 	lib_random.mod\
 	lib_statistics.mod
 
@@ -23,7 +23,7 @@ lib_constants.mod: lib_kinds.mod
 lib_kinds.mod:
 	gfortran $(GCFLAGS) lib_kinds.f08
 
-lib_linalg.mod: lib_kinds.mod
+lib_linalg.mod: lib_kinds.mod lib_math.mod
 	gfortran $(GCFLAGS) lib_linalg.f08
 
 lib_math.mod: lib_kinds.mod

@@ -1,6 +1,7 @@
 module lib_linalg
 
     use lib_kinds, only: sp, dp
+    use lib_math, only: operator(.nearly.)
 
     implicit none
 
@@ -8,7 +9,8 @@ module lib_linalg
     public :: eye, diag
     public :: cross
     public :: inv_2x2, inv_3x3, inv_4x4
-    public :: chol, forward_solve, backward_solve
+    public :: chol, PLU, forward_solve, backward_solve
+    public :: swap
 
     interface diag
         module procedure diag_i
@@ -41,6 +43,11 @@ module lib_linalg
         module procedure chol_dp
     end interface
 
+    interface PLU
+        module procedure PLU_sp
+        module procedure PLU_dp
+    end interface
+
     interface forward_solve
         module procedure forward_solve_sp
         module procedure forward_solve_dp
@@ -49,6 +56,12 @@ module lib_linalg
     interface backward_solve
         module procedure backward_solve_sp
         module procedure backward_solve_dp
+    end interface
+
+    interface swap
+        module procedure swap_i
+        module procedure swap_sp
+        module procedure swap_dp
     end interface
 
 contains
@@ -283,7 +296,7 @@ contains
 
         do i = 1, size(A, 1)
             do j = 1, i
-                s = sum(L(i, 1:j-1) * L(j, 1:j-1))
+                s = sum(L(i, 1:j - 1) * L(j, 1:j - 1))
                 if (i == j) then
                     L(i, j) = sqrt(A(i, i) - s)
                 else
@@ -303,7 +316,7 @@ contains
 
         do i = 1, size(A, 1)
             do j = 1, i
-                s = sum(L(i, 1:j-1) * L(j, 1:j-1))
+                s = sum(L(i, 1:j - 1) * L(j, 1:j - 1))
                 if (i == j) then
                     L(i, j) = sqrt(A(i, i) - s)
                 else
@@ -312,6 +325,66 @@ contains
             end do
         end do
     end function
+
+    pure subroutine PLU_sp(A, L, U, P)
+        ! https://johnfoster.pge.utexas.edu/numerical-methods-book/LinearAlgebra_LU.html
+        real(sp), intent(in) :: A(:, :)
+        real(sp), intent(out) :: L(size(A, 1), size(A, 1))
+        real(sp), intent(out) :: U(size(A, 1), size(A, 1))
+        integer, intent(out) :: P(size(A, 1), size(A, 1))
+
+        integer :: i, j, k, n
+
+        n = size(A, 1)
+
+        P = eye(n)
+        L = real(P, kind=sp)
+        U = A
+
+        do i = 1, n
+            k = i
+            do while (abs(U(i, i)) .nearly.0.0_sp)
+                call swap(U(i, :), U(k + 1, :))
+                call swap(P(i, :), P(k + 1, :))
+                k = k + 1
+            end do
+            do j = i + 1, n
+                L(j, i) = U(j, i) / U(i, i)
+                U(j, :) = U(j, :) - L(j, i) * U(i, :)
+            end do
+        end do
+
+    end subroutine
+
+    pure subroutine PLU_dp(A, L, U, P)
+        ! https://johnfoster.pge.utexas.edu/numerical-methods-book/LinearAlgebra_LU.html
+        real(dp), intent(in) :: A(:, :)
+        real(dp), intent(out) :: L(size(A, 1), size(A, 1))
+        real(dp), intent(out) :: U(size(A, 1), size(A, 1))
+        integer, intent(out) :: P(size(A, 1), size(A, 1))
+
+        integer :: i, j, k, n
+
+        n = size(A, 1)
+
+        P = eye(n)
+        L = real(P, kind=dp)
+        U = A
+
+        do i = 1, n
+            k = i
+            do while (abs(U(i, i)) .nearly.0.0_dp)
+                call swap(U(i, :), U(k + 1, :))
+                call swap(P(i, :), P(k + 1, :))
+                k = k + 1
+            end do
+            do j = i + 1, n
+                L(j, i) = U(j, i) / U(i, i)
+                U(j, :) = U(j, :) - L(j, i) * U(i, :)
+            end do
+        end do
+
+    end subroutine
 
     pure function forward_solve_sp(L, b) result(x)
         real(sp), intent(in) :: L(:, :), b(:)
@@ -364,5 +437,29 @@ contains
         end do
 
     end function
+
+    elemental subroutine swap_i(a, b)
+        integer, intent(inout) :: a, b
+        integer :: tmp
+        tmp = a
+        a = b
+        b = tmp
+    end subroutine
+
+    elemental subroutine swap_sp(a, b)
+        real(sp), intent(inout) :: a, b
+        real(sp) :: tmp
+        tmp = a
+        a = b
+        b = tmp
+    end subroutine
+
+    elemental subroutine swap_dp(a, b)
+        real(dp), intent(inout) :: a, b
+        real(dp) :: tmp
+        tmp = a
+        a = b
+        b = tmp
+    end subroutine
 
 end module
