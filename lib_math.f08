@@ -5,7 +5,7 @@ module lib_math
     implicit none
 
     private
-    public :: trapz
+    public :: trapz, operator(.nearly.)
 
     interface trapz
         module procedure trapz_xy_sp
@@ -19,6 +19,18 @@ module lib_math
     interface trapezium
         module procedure trapezium_sp
         module procedure trapezium_dp
+    end interface
+
+    interface operator(.nearly.)
+        module procedure nearly_sp
+        module procedure nearly_dp
+    end interface
+
+    interface nearly
+        module procedure nearly_sp
+        module procedure nearly_dp
+        module procedure nearly_tol_sp
+        module procedure nearly_tol_dp
     end interface
 
 contains
@@ -137,6 +149,28 @@ contains
         real(dp), intent(in) :: x1, x2, y1, y2
         real(dp) :: s
         s = 0.5_dp * (y1 + y2) * (x2 - x1)
+    end function
+
+    pure logical function nearly_sp(a, b)
+        real(sp), intent(in) :: a, b
+        real(sp), parameter :: tol = epsilon(1.0_sp) * 10.0_sp
+        nearly_sp = abs(a - b) < tol
+    end function
+
+    pure logical function nearly_dp(a, b)
+        real(dp), intent(in) :: a, b
+        real(dp), parameter :: tol = epsilon(1.0_dp) * 10.0_dp
+        nearly_dp = abs(a - b) < tol
+    end function
+
+    pure logical function nearly_tol_sp(a, b, tol)
+        real(sp), intent(in) :: a, b, tol
+        nearly_tol_sp = abs(a - b) < abs(tol)
+    end function
+
+    pure logical function nearly_tol_dp(a, b, tol)
+        real(dp), intent(in) :: a, b, tol
+        nearly_tol_dp = abs(a - b) < abs(tol)
     end function
 
 end module
