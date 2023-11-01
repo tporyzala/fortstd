@@ -1,6 +1,9 @@
-module mod_random
+module lib_random
 
     implicit none
+
+    private
+    public :: rand_norm
 
 contains
 
@@ -9,9 +12,7 @@ contains
         ! from a normal distribution mean=0, std=1
         !
         ! Adapted from: http://jblevins.org/mirror/amiller/random.f90
-        implicit none
         real :: fn_val
-
         real :: s = 0.449871, t = -0.386595, a = 0.19600, b = 0.25472, &
                 r1 = 0.27597, r2 = 0.27846, u, v, x, y, q
 
@@ -40,4 +41,4 @@ contains
 
     end function
 
-end module mod_random
+end module

@@ -173,33 +173,33 @@ contains
 
 end module
 
-program main
+! program main
 
-    use lib_kinds, only: wp=>sp
-    use lib_statistics
+!     use lib_kinds, only: wp=>sp
+!     use lib_statistics
 
-    implicit none
+!     implicit none
 
-    real(wp) :: empty(0)
+!     real(wp) :: empty(0)
 
-    print *, 'MEAN'
-    print *, repeat('-', 20)
-    print *, mean((/1.0_wp, 2.0_wp, 3.0_wp, 4.0_wp/))
-    print *, mean((/1.0_wp/))
-    print *, mean(empty)
-    print *, mean(reshape((/1.0_wp, 2.0_wp, 3.0_wp, 4.0_wp, 5.0_wp, 6.0_wp/), (/3, 2/)))
-    print *, mean(reshape((/1.0_wp, 2.0_wp, 3.0_wp, 4.0_wp, 5.0_wp, 6.0_wp/), (/3, 2/)), 1)
-    print *, mean(reshape((/1.0_wp, 2.0_wp, 3.0_wp, 4.0_wp, 5.0_wp, 6.0_wp/), (/3, 2/)), 2)
+!     print *, 'MEAN'
+!     print *, repeat('-', 20)
+!     print *, mean((/1.0_wp, 2.0_wp, 3.0_wp, 4.0_wp/))
+!     print *, mean((/1.0_wp/))
+!     print *, mean(empty)
+!     print *, mean(reshape((/1.0_wp, 2.0_wp, 3.0_wp, 4.0_wp, 5.0_wp, 6.0_wp/), (/3, 2/)))
+!     print *, mean(reshape((/1.0_wp, 2.0_wp, 3.0_wp, 4.0_wp, 5.0_wp, 6.0_wp/), (/3, 2/)), 1)
+!     print *, mean(reshape((/1.0_wp, 2.0_wp, 3.0_wp, 4.0_wp, 5.0_wp, 6.0_wp/), (/3, 2/)), 2)
 
-    print *, 'STD'
-    print *, repeat('-', 20)
-    print *, std((/1.0_wp, 2.0_wp, 3.0_wp/))
-    print *, std((/1.0_wp, 1.0_wp, 1.0_wp/))
-    print *, std((/1.0_wp/))
-    print *, std(empty)
-    print *, std(reshape((/1.0_wp, 2.0_wp, 3.0_wp, 4.0_wp, 5.0_wp, 6.0_wp/), (/3, 2/)))
-    print *, std(reshape((/1.0_wp, 2.0_wp, 3.0_wp, 4.0_wp, 5.0_wp, 6.0_wp/), (/3, 2/)), 1)
-    print *, std(reshape((/1.0_wp, 2.0_wp, 3.0_wp, 4.0_wp, 5.0_wp, 6.0_wp/), (/3, 2/)), 2)
+!     print *, 'STD'
+!     print *, repeat('-', 20)
+!     print *, std((/1.0_wp, 2.0_wp, 3.0_wp/))
+!     print *, std((/1.0_wp, 1.0_wp, 1.0_wp/))
+!     print *, std((/1.0_wp/))
+!     print *, std(empty)
+!     print *, std(reshape((/1.0_wp, 2.0_wp, 3.0_wp, 4.0_wp, 5.0_wp, 6.0_wp/), (/3, 2/)))
+!     print *, std(reshape((/1.0_wp, 2.0_wp, 3.0_wp, 4.0_wp, 5.0_wp, 6.0_wp/), (/3, 2/)), 1)
+!     print *, std(reshape((/1.0_wp, 2.0_wp, 3.0_wp, 4.0_wp, 5.0_wp, 6.0_wp/), (/3, 2/)), 2)
 
-end program
+! end program
 
