@@ -10,8 +10,12 @@ program test_lib
 
     implicit none
 
-    real(wp) :: empty(0), x, x1, x2, y, y1, y2, t, t1, t2
-    ! character(len=1), parameter :: f = '*'
+    real(wp) :: empty(0), x1, x2, y1, y2, t, t1, t2
+    real(wp), allocatable :: x(:), y(:)
+    integer :: n
+
+    n = 50
+    allocate (x(n), y(n))
 
     ! lib_array
     ! public :: linspace, logspace, arrange, diff, unique
@@ -45,10 +49,29 @@ program test_lib
     print *, diff(real(reshape((/1, 2, 5, 0/), (/2, 2/)), kind=wp), 1)
     print *, diff(real(reshape((/1, 2, 5, 0/), (/2, 2/)), kind=wp), 2)
 
-    ! print *, 'UNIQUE'
-    ! print *, repeat('-', 20)
-    ! print f, unique((/2.0_wp, 2.0_wp, 1.0_wp, 2.0_wp, -1.0_wp, 22.0_wp, 1.0_wp, 3.0_wp/))
-    ! print f, unique(reshape((/2.0_wp, 2.0_wp, 1.0_wp, 2.0_wp, -1.0_wp, 22.0_wp, 1.0_wp, 3.0_wp/), (/4, 2/)))
+    print *, 'UNIQUE'
+    print *, repeat('-', 20)
+    print *, unique((/1, 2, 3, 2, 4, 1, -1/))
+    print *, unique(reshape((/1, 2, 3, 5, 4, 3, 6, 8/), (/4, 2/)))
+
+    ! lib_math
+    ! public :: trapz, operator(.nearly.), nearly
+
+    print *, 'TRAPZ'
+    print *, repeat('-', 20)
+    print *, trapz(f_sin, 0.0, pi_sp, 50)
+    x = linspace(0.0, pi_sp, n)
+    y = sin(x)
+    print *, trapz(x, y)
+
+    print *, 'NEARLY'
+    print *, repeat('-', 20)
+    print *, 1.nearly.1
+    print *, 1.0_wp.nearly.1.0_wp
+    print *, 1.0_sp.nearly. (1.0_sp + 100.0 * eps_sp)
+    print *, (/1, 2, 3, 4/).nearly. (/1, 0, 3, 4/)
+    print *, nearly(pi_sp, 3.14, tol=0.01)
+    
 
     ! print *, 'MEAN'
     ! print *, repeat('-', 20)
